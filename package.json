@@ -1,0 +1,46 @@
+{
+  "name": "hoist-bucket-pipeline",
+  "version": "1.0.0",
+  "description": "Pipeline methods powering Hoist.bucket",
+  "main": "index.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hoist/hoist-bucket-pipeline.git"
+  },
+  "author": "Hoist Apps Ltd",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hoist/hoist-bucket-pipeline/issues"
+  },
+  "homepage": "https://github.com/hoist/hoist-bucket-pipeline",
+  "devDependencies": {
+    "chai": "^1.9.1",
+    "chai-as-promised": "^4.1.1",
+    "gulp": "^3.8.8",
+    "gulp-istanbul": "^0.3.0",
+    "gulp-istanbul-enforcer": "^1.0.3",
+    "gulp-jshint": "^1.8.4",
+    "gulp-mocha": "^1.1.0",
+    "jshint-growl-reporter": "^0.1.1",
+    "jshint-stylish": "^0.4.0",
+    "run-sequence": "^0.3.6",
+    "sinon": "^1.10.3",
+    "sinon-chai": "^2.5.0"
+  },
+  "private": "true",
+  "dependencies": {
+    "bluebird": "^2.3.6",
+    "hoist-connector-pipeline": "git://github.com/hoist/hoist-connector-pipeline",
+    "hoist-context": "git://github.com/hoist/hoist-context",
+    "hoist-data-pipeline": "git://github.com/hoist/hoist-data-pipeline",
+    "hoist-errors": "git://github.com/hoist/hoist-errors",
+    "hoist-events-pipeline": "git://github.com/hoist/hoist-events-pipeline",
+    "hoist-logger": "git://github.com/hoist/hoist-logger",
+    "hoist-model": "git://github.com/hoist/hoist-model",
+    "hoist-user-pipeline": "git://github.com/hoist/hoist-user-pipeline",
+    "loggly": "^1.0.6"
+  }
+}

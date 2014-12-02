@@ -10,15 +10,16 @@ var globs = {
   js: {
     lib: ['lib/**/*.js', 'start.js'],
     gulpfile: ['Gulpfile.js'],
-    specs: ['tests/**/*.js', '!tests/fixtures/**/*']
+    specs: ['tests/**/*.js']
   },
-  specs: ['tests/**/*.js', '!tests/fixtures/**/*']
+  specs: ['tests/**/*.js', '!tests/fixtures/**']
 };
 
 function runJshint() {
   return gulp.src(
       globs.js.lib.concat(
-        globs.js.gulpfile)
+        globs.js.gulpfile,
+        globs.js.specs)
     )
     .pipe(jshint())
     .pipe(jshint.reporter('jshint-stylish'))

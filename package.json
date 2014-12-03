@@ -2,7 +2,7 @@
   "name": "hoist-bucket-pipeline",
   "version": "1.0.0",
   "description": "Pipeline methods powering Hoist.bucket",
-  "main": "index.js",
+  "main": "./lib/pipeline.js",
   "scripts": {
     "test": "gulp test"
   },

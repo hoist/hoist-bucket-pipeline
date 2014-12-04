@@ -440,39 +440,79 @@ describe('bucketPipeline', function () {
       });
     });
     describe('with no key', function () {
-      var newBucketPipeline;
-      var fakeKey = '2hgjfkitl98-6_hftgh4';
-      var context = {
-        application: {
-          _id:'application'
-        },
-        bucket: {
+      describe('with context.bucket', function () {
+        var newBucketPipeline;
+        var fakeKey = '2hgjfkitl98-6_hftgh4';
+        var context = {
+          application: {
+            _id:'application'
+          },
+          bucket: {
+            key: fakeKey
+          },
+          environment: 'environment'
+        };
+        var bucket = {
           key: fakeKey
-        },
-        environment: 'environment'
-      };
-      var bucket = {
-        key: fakeKey
-      };
-      var result;
-      before(function () {
-        sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve(bucket));
-        newBucketPipeline = new bucketPipeline();
-        sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
-        return (result = newBucketPipeline.get());
+        };
+        var result;
+        before(function () {
+          sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve(bucket));
+          newBucketPipeline = new bucketPipeline();
+          sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
+          return (result = newBucketPipeline.get());
+        });
+        after(function () {
+          Bucket.findOneAsync.restore();
+          newBucketPipeline.Context.get.restore();
+        });
+        it('calls bucket.findOneAsync with correct args', function () {
+          return expect(Bucket.findOneAsync.calledWith({key: context.bucket.key, environment: context.environment, application: context.application._id})).to.eql(true);
+        });
+        it('calls Context.get', function () {
+          return expect(newBucketPipeline.Context.get.calledOnce).to.eql(true);
+        });
+        it('returns bucket', function () {
+          return expect(result).to.become(bucket);
+        });
       });
-      after(function () {
-        Bucket.findOneAsync.restore();
-        newBucketPipeline.Context.get.restore();
-      });
-      it('calls bucket.findOneAsync with correct args', function () {
-        return expect(Bucket.findOneAsync.calledWith({key: context.bucket.key, environment: context.environment, application: context.application._id})).to.eql(true);
-      });
-      it('calls Context.get', function () {
-        return expect(newBucketPipeline.Context.get.calledOnce).to.eql(true);
-      });
-      it('returns bucket', function () {
-        return expect(result).to.become(bucket);
+      describe('with no context.bucket', function () {
+        var newBucketPipeline;
+        var fakeKey = '2hgjfkitl98-6_hftgh4';
+        var context = {
+          application: {
+            _id:'application'
+          },
+          environment: 'environment'
+        };
+        var bucket = {
+          key: fakeKey
+        };
+        var error;
+        before(function (done) {
+          sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve(bucket));
+          newBucketPipeline = new bucketPipeline();
+          sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
+          return newBucketPipeline.get().catch(function (err) {
+            error = err;
+            done();
+          });
+        });
+        after(function () {
+          Bucket.findOneAsync.restore();
+          newBucketPipeline.Context.get.restore();
+        });
+        it('calls bucket.findOneAsync with correct args', function () {
+          return expect(Bucket.findOneAsync.called).to.eql(false);
+        });
+        it('calls Context.get', function () {
+          return expect(newBucketPipeline.Context.get.calledOnce).to.eql(true);
+        });
+        it('returns bucket', function () {
+          return expect(error)
+            .to.be.instanceOf(HoistErrors.bucket.NotFoundError)
+            .and.have.property('message', 'no current bucket');
+        });
       });
     });
   });

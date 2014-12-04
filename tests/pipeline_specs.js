@@ -88,7 +88,7 @@ describe('bucketPipeline', function () {
     describe('with valid meta argument', function () {
       var newBucketPipeline;
       var fakeMeta = {
-        fakekey: 'fake data'
+        fakeKey: 'fake data'
       };
       before(function () {
         sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve());
@@ -110,7 +110,7 @@ describe('bucketPipeline', function () {
     describe('with valid key and meta arguments, with key first', function () {
       var newBucketPipeline;
       var fakeMeta = {
-        fakekey: 'fake data'
+        fakeKey: 'fake data'
       };
       var fakeKey = '2hgjfkitl98-6_hftgh4';
       var context = {
@@ -139,7 +139,7 @@ describe('bucketPipeline', function () {
     describe('with valid key and meta arguments, with meta first', function () {
       var newBucketPipeline;
       var fakeMeta = {
-        fakekey: 'fake data'
+        fakeKey: 'fake data'
       };
       var fakeKey = '2hgjfkitl98-6_hftgh4';
       var context = {
@@ -339,7 +339,7 @@ describe('bucketPipeline', function () {
         newBucketPipeline.Context.get.restore();
       });
       it('rejects', function () {
-        expect(error)
+        return expect(error)
         .to.be.instanceOf(HoistErrors.bucket.NotFoundError);
       });
       it('calls Context.get', function () {
@@ -351,4 +351,107 @@ describe('bucketPipeline', function () {
     });
   });
 
+  describe('.get', function () {
+    describe('with a existing bucket key', function () {
+      var newBucketPipeline;
+      var context = {
+        application: {
+          _id:'application'
+        },
+        environment: 'environment'
+      };
+      var fakeKey = '2hgjfkitl98-6_hftgh4';
+      var bucket = {
+        key: fakeKey
+      };
+      var result;
+      before(function () {
+        sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve(bucket));
+        newBucketPipeline = new bucketPipeline();
+        sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
+        return (result = newBucketPipeline.get(fakeKey));
+      });
+      after(function () {
+        Bucket.findOneAsync.restore();
+        newBucketPipeline.Context.get.restore();
+      });
+      it('calls bucket.findOneAsync with correct args', function () {
+        return expect(Bucket.findOneAsync.calledWith({key: fakeKey, environment: context.environment, application: context.application._id})).to.eql(true);
+      });
+      it('calls Context.get', function () {
+        return expect(newBucketPipeline.Context.get.calledOnce).to.eql(true);
+      });
+      it('returns bucket', function () {
+        return expect(result).to.become(bucket);
+      });
+    });
+    describe('with a non existing bucket key', function () {
+      var newBucketPipeline;
+      var fakeKey = '2hgjfkitl98-6_hftgh4';
+      var context = {
+        application: {
+          _id:'application'
+        },
+        environment: 'environment'
+      };
+      var error;
+      before(function (done) {
+        sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve(null));
+        newBucketPipeline = new bucketPipeline();
+        sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
+        return newBucketPipeline.get(fakeKey).catch(function (err) {
+          error = err;
+          done();
+        });
+      });
+      after(function () {
+        Bucket.findOneAsync.restore();
+        newBucketPipeline.Context.get.restore();
+      });
+      it('calls bucket.findOneAsync with correct args', function () {
+        return expect(Bucket.findOneAsync.calledWith({key: fakeKey, environment: context.environment, application: context.application._id})).to.eql(true);
+      });
+      it('calls Context.get', function () {
+        return expect(newBucketPipeline.Context.get.calledOnce).to.eql(true);
+      });
+      it('throws bucket not found error', function () {
+        return expect(error)
+        .to.be.instanceOf(HoistErrors.bucket.NotFoundError);
+      });
+    });
+    describe('with no key', function () {
+      var newBucketPipeline;
+      var fakeKey = '2hgjfkitl98-6_hftgh4';
+      var context = {
+        application: {
+          _id:'application'
+        },
+        bucket: fakeKey,
+        environment: 'environment'
+      };
+      var bucket = {
+        key: fakeKey
+      };
+      var result;
+      before(function () {
+        sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve(bucket));
+        newBucketPipeline = new bucketPipeline();
+        sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
+        return (result = newBucketPipeline.get());
+      });
+      after(function () {
+        Bucket.findOneAsync.restore();
+        newBucketPipeline.Context.get.restore();
+      });
+      it('calls bucket.findOneAsync with correct args', function () {
+        return expect(Bucket.findOneAsync.calledWith({key: context.bucket, environment: context.environment, application: context.application._id})).to.eql(true);
+      });
+      it('calls Context.get', function () {
+        return expect(newBucketPipeline.Context.get.calledOnce).to.eql(true);
+      });
+      it('returns bucket', function () {
+        return expect(result).to.become(bucket);
+      });
+    });
+  });
 });

@@ -178,7 +178,7 @@ describe('bucketPipeline', function () {
       var bucket;
       var result;
       var options = {
-        _id: 'pthfut76-7ehfgdt23sw',
+        key: 'pthfut76-7ehfgdt23sw',
         meta: {testMeta: 'test'},
         application: 'application',
         environment: 'environment'

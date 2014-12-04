@@ -261,8 +261,16 @@ describe('bucketPipeline', function () {
         environment: 'environment'
       };
       var fakeKey = '2hgjfkitl98-6_hftgh4';
+      var bucket = {
+        key: fakeKey,
+        toObject: function () {
+          return {
+            key: fakeKey
+          };
+        }
+      };
       before(function () {
-        sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve({}));
+        sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve(bucket));
         newBucketPipeline = new bucketPipeline();
         sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
         return newBucketPipeline.set(fakeKey);
@@ -278,7 +286,9 @@ describe('bucketPipeline', function () {
         return expect(newBucketPipeline.Context.get.calledOnce).to.eql(true);
       });
       it('sets context.bucket to the bucket key', function () {
-        return expect(context.bucket).to.eql(fakeKey);
+        return expect(context.bucket).to.eql({
+            key: fakeKey
+          });
       });
     });
     describe('with a non existing bucket key and create true', function () {
@@ -290,11 +300,19 @@ describe('bucketPipeline', function () {
         environment: 'environment'
       };
       var fakeKey = '2hgjfkitl98-6_hftgh4';
+      var bucket = {
+        key: fakeKey,
+        toObject: function () {
+          return {
+            key: fakeKey
+          };
+        }
+      };
       before(function () {
         sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve(null));
         newBucketPipeline = new bucketPipeline();
         sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
-        sinon.stub(newBucketPipeline, 'add').returns(BBPromise.resolve({}));
+        sinon.stub(newBucketPipeline, 'add').returns(BBPromise.resolve(bucket));
         return newBucketPipeline.set(fakeKey, true);
       });
       after(function () {
@@ -312,7 +330,9 @@ describe('bucketPipeline', function () {
         return expect(newBucketPipeline.add.calledWith(fakeKey)).to.eql(true);
       });
       it('sets context.bucket to the bucket key', function () {
-        return expect(context.bucket).to.eql(fakeKey);
+        return expect(context.bucket).to.eql({
+            key: fakeKey
+          });
       });
     });
     describe('with a non existing bucket key and create false', function () {
@@ -426,7 +446,9 @@ describe('bucketPipeline', function () {
         application: {
           _id:'application'
         },
-        bucket: fakeKey,
+        bucket: {
+          key: fakeKey
+        },
         environment: 'environment'
       };
       var bucket = {
@@ -444,7 +466,7 @@ describe('bucketPipeline', function () {
         newBucketPipeline.Context.get.restore();
       });
       it('calls bucket.findOneAsync with correct args', function () {
-        return expect(Bucket.findOneAsync.calledWith({key: context.bucket, environment: context.environment, application: context.application._id})).to.eql(true);
+        return expect(Bucket.findOneAsync.calledWith({key: context.bucket.key, environment: context.environment, application: context.application._id})).to.eql(true);
       });
       it('calls Context.get', function () {
         return expect(newBucketPipeline.Context.get.calledOnce).to.eql(true);

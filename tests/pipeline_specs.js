@@ -454,4 +454,37 @@ describe('bucketPipeline', function () {
       });
     });
   });
+  describe('.getAll', function () {
+      var newBucketPipeline;
+      var fakeKey = '2hgjfkitl98-6_hftgh4';
+      var context = {
+        application: {
+          _id:'application'
+        },
+        environment: 'environment'
+      };
+      var bucket = {
+        key: fakeKey
+      };
+      var result;
+      before(function () {
+        sinon.stub(Bucket, 'findAsync').returns(BBPromise.resolve([]));
+        newBucketPipeline = new bucketPipeline();
+        sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
+        return (result = newBucketPipeline.getAll());
+      });
+      after(function () {
+        Bucket.findAsync.restore();
+        newBucketPipeline.Context.get.restore();
+      });
+      it('calls bucket.findOneAsync with correct args', function () {
+        return expect(Bucket.findAsync.calledWith({environment: context.environment, application: context.application._id})).to.eql(true);
+      });
+      it('calls Context.get', function () {
+        return expect(newBucketPipeline.Context.get.calledOnce).to.eql(true);
+      });
+      it('returns bucket', function () {
+        return expect(result).to.become([]);
+      });
+  });
 });

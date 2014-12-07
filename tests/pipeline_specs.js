@@ -186,7 +186,7 @@ describe('bucketPipeline', function () {
       before(function () {
         bucket = {};
         newBucketPipeline = new bucketPipeline();
-        bucket.saveAsync = sinon.stub().returns(BBPromise.resolve(bucket));
+        bucket.saveAsync = sinon.stub().returns(BBPromise.resolve([bucket, 1]));
         sinon.stub(newBucketPipeline, 'createBucket').returns(bucket);
         sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
         return  (result = newBucketPipeline.addHelper('pthfut76-7ehfgdt23sw', {testMeta: 'test'}));
@@ -226,7 +226,7 @@ describe('bucketPipeline', function () {
       before(function () {
         bucket = {};
         newBucketPipeline = new bucketPipeline();
-        bucket.saveAsync = sinon.stub().returns(BBPromise.resolve(bucket));
+        bucket.saveAsync = sinon.stub().returns(BBPromise.resolve([bucket, 1]));
         sinon.stub(newBucketPipeline, 'createBucket').returns(bucket);
         sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
         return  (result = newBucketPipeline.addHelper());

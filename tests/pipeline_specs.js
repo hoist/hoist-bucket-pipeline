@@ -478,25 +478,18 @@ describe('bucketPipeline', function () {
       });
       describe('with no context.bucket', function () {
         var newBucketPipeline;
-        var fakeKey = '2hgjfkitl98-6_hftgh4';
         var context = {
           application: {
             _id:'application'
           },
           environment: 'environment'
         };
-        var bucket = {
-          key: fakeKey
-        };
-        var error;
-        before(function (done) {
-          sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve(bucket));
+        var result;
+        before(function () {
+          sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve());
           newBucketPipeline = new bucketPipeline();
           sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
-          return newBucketPipeline.get().catch(function (err) {
-            error = err;
-            done();
-          });
+          return (result = newBucketPipeline.get());
         });
         after(function () {
           Bucket.findOneAsync.restore();
@@ -509,9 +502,7 @@ describe('bucketPipeline', function () {
           return expect(newBucketPipeline.Context.get.calledOnce).to.eql(true);
         });
         it('returns bucket', function () {
-          return expect(error)
-            .to.be.instanceOf(HoistErrors.bucket.NotFoundError)
-            .and.have.property('message', 'no current bucket');
+          return expect(result).to.become(null);
         });
       });
     });

@@ -516,7 +516,7 @@ describe('bucketPipeline', function () {
           Bucket.findOneAsync.restore();
           newBucketPipeline.Context.get.restore();
         });
-        it('calls bucket.findOneAsync with correct args', function () {
+        it('does not call bucket.findOneAsync', function () {
           return expect(Bucket.findOneAsync.called).to.eql(false);
         });
         it('calls Context.get', function () {
@@ -606,10 +606,7 @@ describe('bucketPipeline', function () {
         toObject: function () {
           return {
             key: fakeKey,
-            meta: {
-              key1: 'value',
-              key: 'value'
-            }
+            meta: meta
           };
         },
         markModified: function () {},
@@ -704,10 +701,7 @@ describe('bucketPipeline', function () {
           toObject: function () {
             return {
               key: fakeKey,
-              meta: {
-                key1: 'value',
-                key: 'value'
-              }
+              meta: meta
             };
           },
           markModified: function() {},
@@ -765,25 +759,29 @@ describe('bucketPipeline', function () {
         var meta = {
           key: 'newValue'
         };
-        var result;
-        before(function () {
+        var error;
+        before(function (done) {
           sinon.stub(Bucket, 'findOneAsync').returns(BBPromise.resolve());
           newBucketPipeline = new bucketPipeline();
           sinon.stub(newBucketPipeline.Context, 'get').returns(BBPromise.resolve(context));
-          return (result = newBucketPipeline.saveMeta(meta));
+          return newBucketPipeline.saveMeta(meta).catch(function(err){
+            error = err;
+            done();
+          });
         });
         after(function () {
           Bucket.findOneAsync.restore();
           newBucketPipeline.Context.get.restore();
         });
-        it('calls bucket.findOneAsync with correct args', function () {
+        it('does not call bucket.findOneAsync', function () {
           return expect(Bucket.findOneAsync.called).to.eql(false);
         });
         it('calls Context.get', function () {
           return expect(newBucketPipeline.Context.get.calledOnce).to.eql(true);
         });
-        it('return null', function () {
-          return expect(result).to.become(null);
+        it('rejects', function () {
+          expect(error)
+            .to.be.instanceOf(HoistErrors.bucket.NotFoundError);
         });
       });
     });

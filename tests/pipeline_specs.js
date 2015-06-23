@@ -5,8 +5,8 @@ chai.use(require('chai-as-promised'));
 var expect = chai.expect;
 var sinon = require('sinon');
 var BBPromise = require('bluebird');
-var Bucket = require('hoist-model').Bucket;
-var HoistErrors = require('hoist-errors');
+var Bucket = require('@hoist/model').Bucket;
+var HoistErrors = require('@hoist/errors');
 
 describe('bucketPipeline', function () {
   describe('.add', function () {
@@ -84,7 +84,7 @@ describe('bucketPipeline', function () {
           .to.be.instanceOf(HoistErrors.bucket.InvalidError)
           .and.have.property('message', 'A bucket with key "'+fakeKey+'" already exists');
       });
-      
+
     });
     describe('with valid meta argument', function () {
       var newBucketPipeline;
@@ -173,7 +173,7 @@ describe('bucketPipeline', function () {
       it('creates a new bucket with correct args', function () {
         return expect(newBucketPipeline.createBucket.calledWith(options)).to.eql(true);
       });
-      
+
       it('saves the new bucket', function () {
         return expect(bucket.saveAsync.calledOnce).to.eql(true);
       });
@@ -215,7 +215,7 @@ describe('bucketPipeline', function () {
       it('creates a new bucket with correct args', function () {
         return expect(newBucketPipeline.createBucket.calledWith(options)).to.eql(true);
       });
-      
+
       it('saves the new bucket', function () {
         return expect(bucket.saveAsync.calledOnce).to.eql(true);
       });
@@ -256,7 +256,7 @@ describe('bucketPipeline', function () {
       it('creates a new bucket with correct args', function () {
         return expect(newBucketPipeline.createBucket.calledWith(options)).to.eql(true);
       });
-      
+
       it('saves the new bucket', function () {
         return expect(bucket.saveAsync.calledOnce).to.eql(true);
       });
@@ -265,7 +265,7 @@ describe('bucketPipeline', function () {
       });
     });
   });
-  
+
   describe('.set', function () {
     describe('with a existing bucket key', function () {
       var newBucketPipeline;
@@ -585,7 +585,7 @@ describe('bucketPipeline', function () {
       return expect(result).to.eql(buckets);
     });
   });
-  
+
   describe('.saveMeta', function () {
     describe('with a existing bucket key', function () {
       var newBucketPipeline;

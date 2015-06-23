@@ -34,7 +34,6 @@
     "sinon": "^1.10.3",
     "sinon-chai": "^2.5.0"
   },
-  "private": "true",
   "dependencies": {
     "@hoist/errors": "^1.0.1",
     "@hoist/logger": "^1.0.0",

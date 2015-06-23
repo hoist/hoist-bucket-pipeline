@@ -62,10 +62,10 @@ gulp.task('mocha-server-continue', function (cb) {
     })
     .on('finish', function () {
       mochaServer().on('error', function (err) {
-        console.trace(err);
-        this.emit('end');
-        cb();
-      }).pipe(istanbul.writeReports(coverageOptions))
+          console.trace(err);
+          this.emit('end');
+          cb();
+        }).pipe(istanbul.writeReports(coverageOptions))
         .on('end', cb);
     });
 });
@@ -88,11 +88,17 @@ gulp.task('mocha-server', function (cb) {
     .pipe(istanbul())
     .on('finish', function () {
       mochaServer({
-        reporter: 'spec'
-      })
+          reporter: 'spec'
+        })
         .pipe(istanbul.writeReports(coverageOptions))
         .on('end', cb);
     });
+});
+
+gulp.task('mocha-server-without-coverage', function () {
+  return mochaServer({
+    reporter: 'spec'
+  });
 });
 
 gulp.task('watch', function () {
@@ -100,7 +106,8 @@ gulp.task('watch', function () {
   var watching = false;
   gulp.start(
     'jshint',
-    'mocha-server-continue', function () {
+    'mocha-server-continue',
+    function () {
       // Protect against this function being called twice
       if (!watching) {
         watching = true;

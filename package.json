@@ -1,6 +1,6 @@
 {
   "name": "@hoist/bucket-pipeline",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Pipeline methods powering Hoist.bucket",
   "main": "./lib/pipeline.js",
   "scripts": {

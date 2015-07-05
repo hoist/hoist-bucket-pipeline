@@ -141,9 +141,12 @@ class Pipeline {
    * @returns {Promise<Object>} - the Bucket in object form
    */
   get(key) {
+    this._logger.info('getting bucket');
+    this._logger.info('retrieving context');
     return Context.get()
       .then((context) => {
         if (key) {
+          this._logger.info('loading bucket by key');
           return Bucket.findOneAsync({
               key: key,
               environment: context.environment,
@@ -157,14 +160,17 @@ class Pipeline {
             });
         }
         if (context.bucket) {
+          this._logger.info('loading from context');
           return Bucket.findOneAsync({
             key: context.bucket.key,
             environment: context.environment,
             application: context.application._id
           }).then((bucket) => {
             if (bucket) {
+              this._logger.info('retrieved bucket');
               return bucket.toObject();
             }
+            this._logger.info('no bucket found');
             throw new Errors.bucket.NotFoundError();
           });
         }
@@ -178,25 +184,32 @@ class Pipeline {
    * @returns {Promise} - the Promise to have deleted the bucket
    */
   remove(key) {
+    this._logger.info('remove bucket');
+    this._logger.info('getting context');
     return Context.get()
       .then((context) => {
         if (key) {
+          this._logger.info('removing bucket by key');
           return Bucket.removeAsync({
             key: key,
             environment: context.environment,
             application: context.application._id
           }).then(() => {
+
             if (context.bucket && context.bucket.key === key) {
+              this._logger.info('removing bucket from context');
               context.bucket = null;
             }
           });
         }
         if (context.bucket) {
+          this._logger.info('removing bucket by context');
           return Bucket.removeAsync({
             key: context.bucket.key,
             environment: context.environment,
             application: context.application._id
           }).then(() => {
+            this._logger.info('removing bucket from context');
             context.bucket = null;
           });
         }
@@ -210,13 +223,19 @@ class Pipeline {
    * @returns {Promise<Array<Object>>} - an Array of Buckets in object form
    */
   getAll() {
+    this._logger.info('getting all buckets');
     return Context.get()
       .then((context) => {
+        this._logger.info('loaded context');
         return Bucket.findAsync({
           environment: context.environment,
           application: context.application._id
         }).then((buckets) => {
+          this._logger.info({
+            bucketCount: buckets.length
+          }, 'returning buckets');
           return buckets.map((bucket) => {
+
             return bucket.toObject();
           });
         });
@@ -229,8 +248,13 @@ class Pipeline {
    * @returns {Promise} - promise to have run the function over each bucket
    */
   each(fn) {
+    this._logger.info('calling each');
     return this.getAll().then((buckets) => {
+      this._logger.info('running function against each bucket');
       return Promise.all(buckets.map((bucket) => {
+        this._logger.info({
+          bucketId: bucket._id
+        }, 'running function against a bucket');
         return Promise.resolve(fn(bucket));
       }));
     });
@@ -243,27 +267,35 @@ class Pipeline {
    * @returns {Promise<Object>} - the Bucket in object form
    */
   saveMeta(meta, key) {
+    this._logger.info('saving meta data');
+    this._logger.info('getting context');
     return Context.get()
       .then((context) => {
+        this._logger.info('retrieved context');
         if (key) {
+          this._logger.info('finding bucket by key');
           return Bucket.findOneAsync({
               key: key,
               environment: context.environment,
               application: context.application._id
             })
             .then((bucket) => {
+              this._logger.info('saving meta data to bucket');
               return this._saveMetaHelper(bucket, meta);
             });
         }
         if (context.bucket) {
+          this._logger.info('finding bucket by context');
           return Bucket.findOneAsync({
             key: context.bucket.key,
             environment: context.environment,
             application: context.application._id
           }).then((bucket) => {
+            this._logger.info('saving meta data to bucket');
             return this._saveMetaHelper(bucket, meta);
           });
         }
+        this._logger.info('no bucket found');
         throw new Errors.bucket.NotFoundError();
       });
   }

@@ -39742,7 +39742,26 @@
             }
           }
         ],
-        "trailingComments": []
+        "trailingComments": [
+          {
+            "type": "Block",
+            "value": "*\n * @external {Context} https://github.com/hoist/hoist-context/blob/feature/remove_cls/src/index.js\n ",
+            "range": [
+              9487,
+              9593
+            ],
+            "loc": {
+              "start": {
+                "line": 315,
+                "column": 0
+              },
+              "end": {
+                "line": 317,
+                "column": 3
+              }
+            }
+          }
+        ]
       },
       "range": [
         9455,
@@ -39757,7 +39776,27 @@
           "line": 313,
           "column": 30
         }
-      }
+      },
+      "trailingComments": [
+        {
+          "type": "Block",
+          "value": "*\n * @external {Context} https://github.com/hoist/hoist-context/blob/feature/remove_cls/src/index.js\n ",
+          "range": [
+            9487,
+            9593
+          ],
+          "loc": {
+            "start": {
+              "line": 315,
+              "column": 0
+            },
+            "end": {
+              "line": 317,
+              "column": 3
+            }
+          }
+        }
+      ]
     }
   ],
   "sourceType": "module",
@@ -39953,6 +39992,24 @@
         "end": {
           "line": 277,
           "column": 5
+        }
+      }
+    },
+    {
+      "type": "Block",
+      "value": "*\n * @external {Context} https://github.com/hoist/hoist-context/blob/feature/remove_cls/src/index.js\n ",
+      "range": [
+        9487,
+        9593
+      ],
+      "loc": {
+        "start": {
+          "line": 315,
+          "column": 0
+        },
+        "end": {
+          "line": 317,
+          "column": 3
         }
       }
     }

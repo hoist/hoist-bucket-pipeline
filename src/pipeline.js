@@ -311,3 +311,7 @@ class BucketPipeline {
 }
 
 export default BucketPipeline;
+
+/**
+ * @external {Context} https://github.com/hoist/hoist-context/blob/feature/remove_cls/src/index.js
+ */

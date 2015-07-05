@@ -382,5 +382,11 @@ window.esdocSearchIndex = [
     "class/src/pipeline.js~BucketPipeline.html#instance-method-set",
     "src/pipeline.js~BucketPipeline#set",
     "method"
+  ],
+  [
+    "src/pipeline.js~context",
+    "external/index.html",
+    "src/pipeline.js~Context",
+    "external"
   ]
 ]

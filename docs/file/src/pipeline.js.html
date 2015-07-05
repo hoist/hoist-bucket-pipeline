@@ -31,7 +31,7 @@
   <h2>Class</h2>
   <ul>
     
-  <li data-ice="classDoc"><span><a href="class/src/pipeline.js~Pipeline.html">Pipeline</a></span></li>
+  <li data-ice="classDoc"><span><a href="class/src/pipeline.js~BucketPipeline.html">BucketPipeline</a></span></li>
 </ul>
 </div>
 
@@ -50,7 +50,6 @@
 <pre class="source-code line-number"><code class="prettyprint linenums" data-ice="content">&apos;use strict&apos;;
 import Errors from &apos;@hoist/errors&apos;;
 import logger from &apos;@hoist/logger&apos;;
-import Context from &apos;@hoist/context&apos;;
 import {
   Bucket
 }
@@ -64,7 +63,7 @@ from &apos;lodash&apos;;
 /**
  * Pipeline class for interacting with Buckets
  */
-class Pipeline {
+class BucketPipeline {
   /**
    * create a new Pipeline
    */
@@ -73,8 +72,8 @@ class Pipeline {
       cls: this.constructor.name
     });
   }
-  _addHelper(key, meta) {
-    return Context.get().then((context) =&gt; {
+  _addHelper(context, key, meta) {
+    return Promise.resolve().then(() =&gt; {
       var options = {
         application: context.application._id,
         environment: context.environment
@@ -113,18 +112,21 @@ class Pipeline {
 
   /**
    * add a new bucket and set the meta data
+   * @param {Context} context - the current context
    * @param {String} key - the unique key for the bucket
    * @param {Object} [meta] - any mata data to save
    * @returns {Promise&lt;Object&gt;} - the Bucket in object form
    */
-  add(key, meta) {
-      if (!meta &amp;&amp; typeof key === &apos;object&apos;) {
-        meta = key;
-        key = null;
-      }
-      if (key) {
-        this._logger.info(&apos;resolving context&apos;);
-        return Context.get().then((context) =&gt; {
+  add(context, key, meta) {
+    return Promise.resolve()
+      .then(() =&gt; {
+        if (!meta &amp;&amp; typeof key === &apos;object&apos;) {
+          meta = key;
+          key = null;
+        }
+        if (key) {
+          this._logger.info(&apos;resolving context&apos;);
+
           this._logger.info({
             context: context
           }, &apos;looking up bucket&apos;);
@@ -137,24 +139,26 @@ class Pipeline {
               if (bucket) {
                 throw new Errors.bucket.InvalidError(&apos;A bucket with key &quot;&apos; + key + &apos;&quot; already exists&apos;);
               }
-              return this._addHelper(key, meta);
+              return this._addHelper(context, key, meta);
             });
-        });
-      }
-      return this._addHelper(key, meta);
-    }
-    /**
-     * load the bucket specified from the database or create it
-     * and set it as the current bucket
-     * @param {String} key - the unique key for the bucket
-     * @param {Boolean} [create=false] - should we create the bucket?
-     * @returns {Promise&lt;Object&gt;} - the Bucket in object form
-     */
-  set(key, create) {
+        }
+        return this._addHelper(context, key, meta);
+      });
+  }
+
+  /**
+   * load the bucket specified from the database or create it
+   * and set it as the current bucket
+   * @param {Context} context - the current context
+   * @param {String} key - the unique key for the bucket
+   * @param {Boolean} [create=false] - should we create the bucket?
+   * @returns {Promise&lt;Object&gt;} - the Bucket in object form
+   */
+  set(context, key, create) {
     var self = this;
     this._logger.info(&apos;resolving context&apos;);
-    return Context.get()
-      .then((context) =&gt; {
+    return Promise.resolve()
+      .then(() =&gt; {
         this._logger.info({
           context: context
         }, &apos;looking up bucket&apos;);
@@ -186,14 +190,15 @@ class Pipeline {
 
   /**
    * get a new bucket from the database
+   * @param {Context} context - the current context
    * @param {String} key - the unique key for the bucket
    * @returns {Promise&lt;Object&gt;} - the Bucket in object form
    */
-  get(key) {
+  get(context, key) {
     this._logger.info(&apos;getting bucket&apos;);
     this._logger.info(&apos;retrieving context&apos;);
-    return Context.get()
-      .then((context) =&gt; {
+    return Promise.resolve()
+      .then(() =&gt; {
         if (key) {
           this._logger.info(&apos;loading bucket by key&apos;);
           return Bucket.findOneAsync({
@@ -229,14 +234,15 @@ class Pipeline {
 
   /**
    * remove bucket from the database
+   * @param {Context} context - the current context
    * @param {String} key - the unique key for the bucket
    * @returns {Promise} - the Promise to have deleted the bucket
    */
-  remove(key) {
+  remove(context, key) {
     this._logger.info(&apos;remove bucket&apos;);
     this._logger.info(&apos;getting context&apos;);
-    return Context.get()
-      .then((context) =&gt; {
+    return Promise.resolve()
+      .then(() =&gt; {
         if (key) {
           this._logger.info(&apos;removing bucket by key&apos;);
           return Bucket.removeAsync({
@@ -269,12 +275,13 @@ class Pipeline {
 
   /**
    * get all application buckets from the database
+   * @param {Context} context - the current context
    * @returns {Promise&lt;Array&lt;Object&gt;&gt;} - an Array of Buckets in object form
    */
-  getAll() {
+  getAll(context) {
     this._logger.info(&apos;getting all buckets&apos;);
-    return Context.get()
-      .then((context) =&gt; {
+    return Promise.resolve()
+      .then(() =&gt; {
         this._logger.info(&apos;loaded context&apos;);
         return Bucket.findAsync({
           environment: context.environment,
@@ -293,12 +300,13 @@ class Pipeline {
 
   /**
    * run a function over every bucket in the organisation
+   * @param {Context} context - the current context
    * @param {function(Bucket: bucket)} fn - the function to run
    * @returns {Promise} - promise to have run the function over each bucket
    */
-  each(fn) {
+  each(context, fn) {
     this._logger.info(&apos;calling each&apos;);
-    return this.getAll().then((buckets) =&gt; {
+    return this.getAll(context).then((buckets) =&gt; {
       this._logger.info(&apos;running function against each bucket&apos;);
       return Promise.all(buckets.map((bucket) =&gt; {
         this._logger.info({
@@ -311,15 +319,16 @@ class Pipeline {
 
   /**
    * sets and replaces meta data against a bucket
+   * @param {Context} context - the current context
    * @param {Object} meta - the mata data to save
    * @param {String} [key] - the unique key for the bucket, if not set use the current context bucket
    * @returns {Promise&lt;Object&gt;} - the Bucket in object form
    */
-  saveMeta(meta, key) {
+  saveMeta(context, meta, key) {
     this._logger.info(&apos;saving meta data&apos;);
     this._logger.info(&apos;getting context&apos;);
-    return Context.get()
-      .then((context) =&gt; {
+    return Promise.resolve()
+      .then(() =&gt; {
         this._logger.info(&apos;retrieved context&apos;);
         if (key) {
           this._logger.info(&apos;finding bucket by key&apos;);
@@ -350,7 +359,7 @@ class Pipeline {
   }
 }
 
-export default Pipeline;
+export default BucketPipeline;
 </code></pre>
 </div>
 

@@ -1,8 +1,8 @@
 window.esdocSearchIndex = [
   [
-    "@hoist/bucket-pipeline/src/pipeline.js~pipeline",
-    "class/src/pipeline.js~Pipeline.html",
-    "<span>Pipeline</span> <span class=\"search-result-import-path\">@hoist/bucket-pipeline/src/pipeline.js</span>",
+    "@hoist/bucket-pipeline/src/pipeline.js~bucketpipeline",
+    "class/src/pipeline.js~BucketPipeline.html",
+    "<span>BucketPipeline</span> <span class=\"search-result-import-path\">@hoist/bucket-pipeline/src/pipeline.js</span>",
     "class"
   ],
   [
@@ -336,51 +336,51 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
-    "src/pipeline.js~pipeline#add",
-    "class/src/pipeline.js~Pipeline.html#instance-method-add",
-    "src/pipeline.js~Pipeline#add",
+    "src/pipeline.js~bucketpipeline#add",
+    "class/src/pipeline.js~BucketPipeline.html#instance-method-add",
+    "src/pipeline.js~BucketPipeline#add",
     "method"
   ],
   [
-    "src/pipeline.js~pipeline#constructor",
-    "class/src/pipeline.js~Pipeline.html#instance-constructor-constructor",
-    "src/pipeline.js~Pipeline#constructor",
+    "src/pipeline.js~bucketpipeline#constructor",
+    "class/src/pipeline.js~BucketPipeline.html#instance-constructor-constructor",
+    "src/pipeline.js~BucketPipeline#constructor",
     "method"
   ],
   [
-    "src/pipeline.js~pipeline#each",
-    "class/src/pipeline.js~Pipeline.html#instance-method-each",
-    "src/pipeline.js~Pipeline#each",
+    "src/pipeline.js~bucketpipeline#each",
+    "class/src/pipeline.js~BucketPipeline.html#instance-method-each",
+    "src/pipeline.js~BucketPipeline#each",
     "method"
   ],
   [
-    "src/pipeline.js~pipeline#get",
-    "class/src/pipeline.js~Pipeline.html#instance-method-get",
-    "src/pipeline.js~Pipeline#get",
+    "src/pipeline.js~bucketpipeline#get",
+    "class/src/pipeline.js~BucketPipeline.html#instance-method-get",
+    "src/pipeline.js~BucketPipeline#get",
     "method"
   ],
   [
-    "src/pipeline.js~pipeline#getall",
-    "class/src/pipeline.js~Pipeline.html#instance-method-getAll",
-    "src/pipeline.js~Pipeline#getAll",
+    "src/pipeline.js~bucketpipeline#getall",
+    "class/src/pipeline.js~BucketPipeline.html#instance-method-getAll",
+    "src/pipeline.js~BucketPipeline#getAll",
     "method"
   ],
   [
-    "src/pipeline.js~pipeline#remove",
-    "class/src/pipeline.js~Pipeline.html#instance-method-remove",
-    "src/pipeline.js~Pipeline#remove",
+    "src/pipeline.js~bucketpipeline#remove",
+    "class/src/pipeline.js~BucketPipeline.html#instance-method-remove",
+    "src/pipeline.js~BucketPipeline#remove",
     "method"
   ],
   [
-    "src/pipeline.js~pipeline#savemeta",
-    "class/src/pipeline.js~Pipeline.html#instance-method-saveMeta",
-    "src/pipeline.js~Pipeline#saveMeta",
+    "src/pipeline.js~bucketpipeline#savemeta",
+    "class/src/pipeline.js~BucketPipeline.html#instance-method-saveMeta",
+    "src/pipeline.js~BucketPipeline#saveMeta",
     "method"
   ],
   [
-    "src/pipeline.js~pipeline#set",
-    "class/src/pipeline.js~Pipeline.html#instance-method-set",
-    "src/pipeline.js~Pipeline#set",
+    "src/pipeline.js~bucketpipeline#set",
+    "class/src/pipeline.js~BucketPipeline.html#instance-method-set",
+    "src/pipeline.js~BucketPipeline#set",
     "method"
   ]
 ]

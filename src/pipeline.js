@@ -1,7 +1,6 @@
 'use strict';
 import Errors from '@hoist/errors';
 import logger from '@hoist/logger';
-import Context from '@hoist/context';
 import {
   Bucket
 }
@@ -15,7 +14,7 @@ from 'lodash';
 /**
  * Pipeline class for interacting with Buckets
  */
-class Pipeline {
+class BucketPipeline {
   /**
    * create a new Pipeline
    */
@@ -24,8 +23,8 @@ class Pipeline {
       cls: this.constructor.name
     });
   }
-  _addHelper(key, meta) {
-    return Context.get().then((context) => {
+  _addHelper(context, key, meta) {
+    return Promise.resolve().then(() => {
       var options = {
         application: context.application._id,
         environment: context.environment
@@ -64,18 +63,21 @@ class Pipeline {
 
   /**
    * add a new bucket and set the meta data
+   * @param {Context} context - the current context
    * @param {String} key - the unique key for the bucket
    * @param {Object} [meta] - any mata data to save
    * @returns {Promise<Object>} - the Bucket in object form
    */
-  add(key, meta) {
-      if (!meta && typeof key === 'object') {
-        meta = key;
-        key = null;
-      }
-      if (key) {
-        this._logger.info('resolving context');
-        return Context.get().then((context) => {
+  add(context, key, meta) {
+    return Promise.resolve()
+      .then(() => {
+        if (!meta && typeof key === 'object') {
+          meta = key;
+          key = null;
+        }
+        if (key) {
+          this._logger.info('resolving context');
+
           this._logger.info({
             context: context
           }, 'looking up bucket');
@@ -88,24 +90,26 @@ class Pipeline {
               if (bucket) {
                 throw new Errors.bucket.InvalidError('A bucket with key "' + key + '" already exists');
               }
-              return this._addHelper(key, meta);
+              return this._addHelper(context, key, meta);
             });
-        });
-      }
-      return this._addHelper(key, meta);
-    }
-    /**
-     * load the bucket specified from the database or create it
-     * and set it as the current bucket
-     * @param {String} key - the unique key for the bucket
-     * @param {Boolean} [create=false] - should we create the bucket?
-     * @returns {Promise<Object>} - the Bucket in object form
-     */
-  set(key, create) {
+        }
+        return this._addHelper(context, key, meta);
+      });
+  }
+
+  /**
+   * load the bucket specified from the database or create it
+   * and set it as the current bucket
+   * @param {Context} context - the current context
+   * @param {String} key - the unique key for the bucket
+   * @param {Boolean} [create=false] - should we create the bucket?
+   * @returns {Promise<Object>} - the Bucket in object form
+   */
+  set(context, key, create) {
     var self = this;
     this._logger.info('resolving context');
-    return Context.get()
-      .then((context) => {
+    return Promise.resolve()
+      .then(() => {
         this._logger.info({
           context: context
         }, 'looking up bucket');
@@ -137,14 +141,15 @@ class Pipeline {
 
   /**
    * get a new bucket from the database
+   * @param {Context} context - the current context
    * @param {String} key - the unique key for the bucket
    * @returns {Promise<Object>} - the Bucket in object form
    */
-  get(key) {
+  get(context, key) {
     this._logger.info('getting bucket');
     this._logger.info('retrieving context');
-    return Context.get()
-      .then((context) => {
+    return Promise.resolve()
+      .then(() => {
         if (key) {
           this._logger.info('loading bucket by key');
           return Bucket.findOneAsync({
@@ -180,14 +185,15 @@ class Pipeline {
 
   /**
    * remove bucket from the database
+   * @param {Context} context - the current context
    * @param {String} key - the unique key for the bucket
    * @returns {Promise} - the Promise to have deleted the bucket
    */
-  remove(key) {
+  remove(context, key) {
     this._logger.info('remove bucket');
     this._logger.info('getting context');
-    return Context.get()
-      .then((context) => {
+    return Promise.resolve()
+      .then(() => {
         if (key) {
           this._logger.info('removing bucket by key');
           return Bucket.removeAsync({
@@ -220,12 +226,13 @@ class Pipeline {
 
   /**
    * get all application buckets from the database
+   * @param {Context} context - the current context
    * @returns {Promise<Array<Object>>} - an Array of Buckets in object form
    */
-  getAll() {
+  getAll(context) {
     this._logger.info('getting all buckets');
-    return Context.get()
-      .then((context) => {
+    return Promise.resolve()
+      .then(() => {
         this._logger.info('loaded context');
         return Bucket.findAsync({
           environment: context.environment,
@@ -244,12 +251,13 @@ class Pipeline {
 
   /**
    * run a function over every bucket in the organisation
+   * @param {Context} context - the current context
    * @param {function(Bucket: bucket)} fn - the function to run
    * @returns {Promise} - promise to have run the function over each bucket
    */
-  each(fn) {
+  each(context, fn) {
     this._logger.info('calling each');
-    return this.getAll().then((buckets) => {
+    return this.getAll(context).then((buckets) => {
       this._logger.info('running function against each bucket');
       return Promise.all(buckets.map((bucket) => {
         this._logger.info({
@@ -262,15 +270,16 @@ class Pipeline {
 
   /**
    * sets and replaces meta data against a bucket
+   * @param {Context} context - the current context
    * @param {Object} meta - the mata data to save
    * @param {String} [key] - the unique key for the bucket, if not set use the current context bucket
    * @returns {Promise<Object>} - the Bucket in object form
    */
-  saveMeta(meta, key) {
+  saveMeta(context, meta, key) {
     this._logger.info('saving meta data');
     this._logger.info('getting context');
-    return Context.get()
-      .then((context) => {
+    return Promise.resolve()
+      .then(() => {
         this._logger.info('retrieved context');
         if (key) {
           this._logger.info('finding bucket by key');
@@ -301,4 +310,4 @@ class Pipeline {
   }
 }
 
-export default Pipeline;
+export default BucketPipeline;

@@ -17,8 +17,7 @@
   },
   "homepage": "https://github.com/hoist/hoist-bucket-pipeline",
   "peerDependencies": {
-    "@hoist/model": "^1.0.2",
-    "@hoist/context": "^1.0.1"
+    "@hoist/model": "^1.0.2"
   },
   "devDependencies": {
     "babel": "^5.5.8",

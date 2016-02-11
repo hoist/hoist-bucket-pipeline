@@ -23,8 +23,8 @@ function runMocha(options) {
     .pipe(plugins.mocha(options));
 }
 
-gulp.task('mocha-server', ['transpile', 'eslint', 'clean-coverage'], function (cb) {
-  require("babel/register");
+gulp.task('mocha-server', function (cb) {
+  require("babel-register");
   gulp.src(globs.js.src)
     .pipe(plugins.istanbul({
       instrumenter: isparta.Instrumenter
@@ -41,13 +41,13 @@ gulp.task('mocha-server', ['transpile', 'eslint', 'clean-coverage'], function (c
         .on('end', cb);
     });
 });
-gulp.task('mocha-server-without-coverage', ['transpile', 'eslint'], function () {
-  require("babel/register");
+gulp.task('mocha-server-without-coverage', function () {
+  require("babel-register");
   return runMocha();
 });
 var withCoverage = false;
-gulp.task('mocha-server-continue', ['transpile', 'eslint', 'clean-coverage'], function (cb) {
-  require("babel/register")();
+gulp.task('mocha-server-continue', function (cb) {
+  require("babel-register")();
   var ended;
   if (!withCoverage) {
     runMocha({
@@ -84,11 +84,11 @@ gulp.task('mocha-server-continue', ['transpile', 'eslint', 'clean-coverage'], fu
           }
         }, 120000);
         runMocha({
-            errorHandler: function () {
-              console.log('emitting end');
-              this.emit('end');
-            }
-          })
+          errorHandler: function () {
+            console.log('emitting end');
+            this.emit('end');
+          }
+        })
           .pipe(plugins.istanbul.writeReports())
           .on('end', function () {
             if (timeout) {

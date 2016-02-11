@@ -20042,26 +20042,47 @@
           "column": 1
         }
       },
-      "leadingComments": [
-        {
-          "type": "Block",
-          "value": "*\n * Pipeline class for interacting with Buckets\n ",
-          "range": [
-            164,
-            218
-          ],
-          "loc": {
-            "start": {
-              "line": 14,
-              "column": 0
-            },
-            "end": {
-              "line": 16,
-              "column": 3
-            }
+      "leadingComments": [],
+      "name": "_",
+      "trailingComments": []
+    },
+    {
+      "type": "Identifier",
+      "declaration": {
+        "type": "Identifier",
+        "name": "BucketPipeline",
+        "range": [
+          9470,
+          9484
+        ],
+        "loc": {
+          "start": {
+            "line": 313,
+            "column": 15
+          },
+          "end": {
+            "line": 313,
+            "column": 29
           }
         }
-      ]
+      },
+      "range": [
+        9455,
+        9485
+      ],
+      "loc": {
+        "start": {
+          "line": 313,
+          "column": 0
+        },
+        "end": {
+          "line": 313,
+          "column": 30
+        }
+      },
+      "trailingComments": [],
+      "name": "_",
+      "leadingComments": []
     },
     {
       "type": "ExportDefaultDeclaration",
@@ -39742,6 +39763,7 @@
             }
           }
         ],
+        "__esdoc__pseudo_export": false,
         "trailingComments": [
           {
             "type": "Block",
@@ -39796,7 +39818,8 @@
             }
           }
         }
-      ]
+      ],
+      "leadingComments": null
     }
   ],
   "sourceType": "module",

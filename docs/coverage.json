@@ -5,7 +5,8 @@
   "files": {
     "src/pipeline.js": {
       "expectCount": 9,
-      "actualCount": 9
+      "actualCount": 9,
+      "undocumentLines": []
     }
   }
 }

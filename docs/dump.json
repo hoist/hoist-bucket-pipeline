@@ -1,5 +1,6 @@
 [
   {
+    "__docId__": 0,
     "kind": "file",
     "static": true,
     "variation": null,
@@ -12,6 +13,7 @@
     "content": "'use strict';\nimport Errors from '@hoist/errors';\nimport logger from '@hoist/logger';\nimport {\n  Bucket\n}\nfrom '@hoist/model';\n\nimport {\n  extend\n}\nfrom 'lodash';\n\n/**\n * Pipeline class for interacting with Buckets\n */\nclass BucketPipeline {\n  /**\n   * create a new Pipeline\n   */\n  constructor() {\n    this._logger = logger.child({\n      cls: this.constructor.name\n    });\n  }\n  _addHelper(context, key, meta) {\n    return Promise.resolve().then(() => {\n      var options = {\n        application: context.application._id,\n        environment: context.environment\n      };\n      if (key) {\n        options.key = key;\n      }\n      if (meta) {\n        options.meta = meta;\n      } else {\n        options.meta = {};\n      }\n      var newBucket = this._createBucket(options);\n      return newBucket.saveAsync().then((bucket) => {\n        return bucket.toObject();\n      });\n    });\n  }\n  _createBucket(options) {\n    return new Bucket(options);\n  }\n  _saveMetaHelper(bucket, meta) {\n    if (bucket) {\n      if (bucket.meta) {\n        bucket.meta = extend(bucket.meta, meta);\n      } else {\n        bucket.meta = meta;\n      }\n      bucket.markModified('meta');\n      return bucket.saveAsync().then((results) => {\n        return results[0].meta;\n      });\n    }\n    throw new Errors.bucket.NotFoundError();\n  }\n\n  /**\n   * add a new bucket and set the meta data\n   * @param {Context} context - the current context\n   * @param {String} key - the unique key for the bucket\n   * @param {Object} [meta] - any mata data to save\n   * @returns {Promise<Object>} - the Bucket in object form\n   */\n  add(context, key, meta) {\n    return Promise.resolve()\n      .then(() => {\n        if (!meta && typeof key === 'object') {\n          meta = key;\n          key = null;\n        }\n        if (key) {\n          this._logger.info('resolving context');\n\n          this._logger.info({\n            context: context\n          }, 'looking up bucket');\n          return Bucket.findOneAsync({\n              key: key,\n              environment: context.environment,\n              application: context.application._id\n            })\n            .then((bucket) => {\n              if (bucket) {\n                throw new Errors.bucket.InvalidError('A bucket with key \"' + key + '\" already exists');\n              }\n              return this._addHelper(context, key, meta);\n            });\n        }\n        return this._addHelper(context, key, meta);\n      });\n  }\n\n  /**\n   * load the bucket specified from the database or create it\n   * and set it as the current bucket\n   * @param {Context} context - the current context\n   * @param {String} key - the unique key for the bucket\n   * @param {Boolean} [create=false] - should we create the bucket?\n   * @returns {Promise<Object>} - the Bucket in object form\n   */\n  set(context, key, create) {\n    var self = this;\n    this._logger.info('resolving context');\n    return Promise.resolve()\n      .then(() => {\n        this._logger.info({\n          context: context\n        }, 'looking up bucket');\n        return Bucket.findOneAsync({\n            key: key,\n            environment: context.environment,\n            application: context.application._id\n          })\n          .then((bucket) => {\n            this._logger.info({\n              bucket: bucket\n            }, 'bucket lookup complete');\n            if (bucket) {\n              return (context.bucket = bucket.toObject());\n            }\n            if (create) {\n              return self.add(key).then((addedBucket) => {\n                if (addedBucket) {\n                  //add returns an object so don't call to object here\n                  return (context.bucket = addedBucket);\n                }\n                throw new Errors.bucket.SaveError();\n              });\n            }\n            throw new Errors.bucket.NotFoundError();\n          });\n      });\n  }\n\n  /**\n   * get a new bucket from the database\n   * @param {Context} context - the current context\n   * @param {String} key - the unique key for the bucket\n   * @returns {Promise<Object>} - the Bucket in object form\n   */\n  get(context, key) {\n    this._logger.info('getting bucket');\n    this._logger.info('retrieving context');\n    return Promise.resolve()\n      .then(() => {\n        if (key) {\n          this._logger.info('loading bucket by key');\n          return Bucket.findOneAsync({\n              key: key,\n              environment: context.environment,\n              application: context.application._id\n            })\n            .then((bucket) => {\n              if (bucket) {\n                return bucket.toObject();\n              }\n              throw new Errors.bucket.NotFoundError();\n            });\n        }\n        if (context.bucket) {\n          this._logger.info('loading from context');\n          return Bucket.findOneAsync({\n            key: context.bucket.key,\n            environment: context.environment,\n            application: context.application._id\n          }).then((bucket) => {\n            if (bucket) {\n              this._logger.info('retrieved bucket');\n              return bucket.toObject();\n            }\n            this._logger.info('no bucket found');\n            throw new Errors.bucket.NotFoundError();\n          });\n        }\n        return null;\n      });\n  }\n\n  /**\n   * remove bucket from the database\n   * @param {Context} context - the current context\n   * @param {String} key - the unique key for the bucket\n   * @returns {Promise} - the Promise to have deleted the bucket\n   */\n  remove(context, key) {\n    this._logger.info('remove bucket');\n    this._logger.info('getting context');\n    return Promise.resolve()\n      .then(() => {\n        if (key) {\n          this._logger.info('removing bucket by key');\n          return Bucket.removeAsync({\n            key: key,\n            environment: context.environment,\n            application: context.application._id\n          }).then(() => {\n\n            if (context.bucket && context.bucket.key === key) {\n              this._logger.info('removing bucket from context');\n              context.bucket = null;\n            }\n          });\n        }\n        if (context.bucket) {\n          this._logger.info('removing bucket by context');\n          return Bucket.removeAsync({\n            key: context.bucket.key,\n            environment: context.environment,\n            application: context.application._id\n          }).then(() => {\n            this._logger.info('removing bucket from context');\n            context.bucket = null;\n          });\n        }\n        return null;\n\n      });\n  }\n\n  /**\n   * get all application buckets from the database\n   * @param {Context} context - the current context\n   * @returns {Promise<Array<Object>>} - an Array of Buckets in object form\n   */\n  getAll(context) {\n    this._logger.info('getting all buckets');\n    return Promise.resolve()\n      .then(() => {\n        this._logger.info('loaded context');\n        return Bucket.findAsync({\n          environment: context.environment,\n          application: context.application._id\n        }).then((buckets) => {\n          this._logger.info({\n            bucketCount: buckets.length\n          }, 'returning buckets');\n          return buckets.map((bucket) => {\n\n            return bucket.toObject();\n          });\n        });\n      });\n  }\n\n  /**\n   * run a function over every bucket in the organisation\n   * @param {Context} context - the current context\n   * @param {function(Bucket: bucket)} fn - the function to run\n   * @returns {Promise} - promise to have run the function over each bucket\n   */\n  each(context, fn) {\n    this._logger.info('calling each');\n    return this.getAll(context).then((buckets) => {\n      this._logger.info('running function against each bucket');\n      return Promise.all(buckets.map((bucket) => {\n        this._logger.info({\n          bucketId: bucket._id\n        }, 'running function against a bucket');\n        return Promise.resolve(fn(bucket));\n      }));\n    });\n  }\n\n  /**\n   * sets and replaces meta data against a bucket\n   * @param {Context} context - the current context\n   * @param {Object} meta - the mata data to save\n   * @param {String} [key] - the unique key for the bucket, if not set use the current context bucket\n   * @returns {Promise<Object>} - the Bucket in object form\n   */\n  saveMeta(context, meta, key) {\n    this._logger.info('saving meta data');\n    this._logger.info('getting context');\n    return Promise.resolve()\n      .then(() => {\n        this._logger.info('retrieved context');\n        if (key) {\n          this._logger.info('finding bucket by key');\n          return Bucket.findOneAsync({\n              key: key,\n              environment: context.environment,\n              application: context.application._id\n            })\n            .then((bucket) => {\n              this._logger.info('saving meta data to bucket');\n              return this._saveMetaHelper(bucket, meta);\n            });\n        }\n        if (context.bucket) {\n          this._logger.info('finding bucket by context');\n          return Bucket.findOneAsync({\n            key: context.bucket.key,\n            environment: context.environment,\n            application: context.application._id\n          }).then((bucket) => {\n            this._logger.info('saving meta data to bucket');\n            return this._saveMetaHelper(bucket, meta);\n          });\n        }\n        this._logger.info('no bucket found');\n        throw new Errors.bucket.NotFoundError();\n      });\n  }\n}\n\nexport default BucketPipeline;\n\n/**\n * @external {Context} https://github.com/hoist/hoist-context/blob/feature/remove_cls/src/index.js\n */\n"
   },
   {
+    "__docId__": 1,
     "kind": "class",
     "static": true,
     "variation": null,
@@ -27,6 +29,7 @@
     "interface": false
   },
   {
+    "__docId__": 2,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -38,6 +41,7 @@
     "description": null
   },
   {
+    "__docId__": 3,
     "kind": "constructor",
     "static": false,
     "variation": null,
@@ -51,6 +55,7 @@
     "generator": false
   },
   {
+    "__docId__": 4,
     "kind": "member",
     "static": false,
     "variation": null,
@@ -68,6 +73,7 @@
     }
   },
   {
+    "__docId__": 5,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -106,6 +112,7 @@
     "generator": false
   },
   {
+    "__docId__": 6,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -132,6 +139,7 @@
     "generator": false
   },
   {
+    "__docId__": 7,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -164,6 +172,7 @@
     "generator": false
   },
   {
+    "__docId__": 8,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -222,6 +231,7 @@
     "generator": false
   },
   {
+    "__docId__": 9,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -282,6 +292,7 @@
     "generator": false
   },
   {
+    "__docId__": 10,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -330,6 +341,7 @@
     "generator": false
   },
   {
+    "__docId__": 11,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -378,6 +390,7 @@
     "generator": false
   },
   {
+    "__docId__": 12,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -416,6 +429,7 @@
     "generator": false
   },
   {
+    "__docId__": 13,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -464,6 +478,7 @@
     "generator": false
   },
   {
+    "__docId__": 14,
     "kind": "method",
     "static": false,
     "variation": null,
@@ -522,6 +537,7 @@
     "generator": false
   },
   {
+    "__docId__": 16,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -534,6 +550,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 17,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -546,6 +563,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 18,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -558,6 +576,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 19,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -570,6 +589,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 20,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -582,6 +602,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 21,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -594,6 +615,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 22,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -606,6 +628,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 23,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -618,6 +641,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 24,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -630,6 +654,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 25,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -642,6 +667,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 26,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -654,6 +680,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 27,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -666,6 +693,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 28,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -678,6 +706,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 29,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -690,6 +719,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 30,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -702,6 +732,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 31,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -714,6 +745,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 32,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -726,6 +758,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 33,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -738,6 +771,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 34,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -750,6 +784,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 35,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -762,6 +797,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 36,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -774,6 +810,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 37,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -786,6 +823,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 38,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -798,6 +836,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 39,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -810,6 +849,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 40,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -822,6 +862,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 41,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -834,6 +875,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 42,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -846,6 +888,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 43,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -858,6 +901,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 44,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -870,6 +914,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 45,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -882,6 +927,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 46,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -894,6 +940,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 47,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -906,6 +953,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 48,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -918,6 +966,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 49,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -930,6 +979,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 50,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -942,6 +992,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 51,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -954,6 +1005,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 52,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -966,6 +1018,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 53,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -978,6 +1031,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 54,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -990,6 +1044,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 55,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1002,6 +1057,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 56,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1014,6 +1070,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 57,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1026,6 +1083,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 58,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1038,6 +1096,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 59,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1050,6 +1109,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 60,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1062,6 +1122,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 61,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1074,6 +1135,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 62,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1086,6 +1148,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 64,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1098,6 +1161,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 65,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1110,6 +1174,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 66,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1122,6 +1187,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 67,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1134,6 +1200,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 68,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1146,6 +1213,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 69,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1158,6 +1226,7 @@
     "builtinExternal": true
   },
   {
+    "__docId__": 70,
     "kind": "external",
     "static": true,
     "variation": null,
@@ -1165,6 +1234,19 @@
     "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
     "memberof": "BuiltinExternal/WebAPIExternal.js",
     "longname": "BuiltinExternal/WebAPIExternal.js~XMLHttpRequest",
+    "access": null,
+    "description": null,
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 71,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "AudioContext",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~AudioContext",
     "access": null,
     "description": null,
     "builtinExternal": true

@@ -605,10 +605,10 @@ describe('bucketPipeline', function () {
           };
         },
         markModified: function () {},
-        saveAsync: sinon.stub().returns(Promise.resolve([{
+        saveAsync: sinon.stub().returns(Promise.resolve({
           key: fakeKey,
           meta: meta
-        }, 1]))
+        }))
       };
       var newMeta = {
         key: 'newValue'
@@ -690,10 +690,10 @@ describe('bucketPipeline', function () {
             };
           },
           markModified: function () {},
-          saveAsync: sinon.stub().returns(Promise.resolve([{
+          saveAsync: sinon.stub().returns(Promise.resolve({
             key: fakeKey,
             meta: meta
-          }, 1]))
+          }))
         };
         var context = {
           application: {

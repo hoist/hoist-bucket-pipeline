@@ -96,7 +96,7 @@ class BucketPipeline {
       }
       bucket.markModified(&apos;meta&apos;);
       return bucket.saveAsync().then((results) =&gt; {
-        return results[0].meta;
+        return results.meta;
       });
     }
     throw new Errors.bucket.NotFoundError();
